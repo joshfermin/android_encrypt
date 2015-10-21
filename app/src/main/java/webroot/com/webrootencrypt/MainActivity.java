@@ -28,35 +28,13 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkSDCardInfo();
+//                checkSDCardInfo();
                 final String state = Environment.getExternalStorageState();
-
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
+                    System.out.println("Getting files from sdcard...");
                     getAllFilesOfDir(Environment.getExternalStorageDirectory());
+                    System.out.println("Done...");
                 }
-
-//                try {
-//                    // Create Test Folder
-//                    File sdCard = Environment.getExternalStorageDirectory();
-//                    File newFolder = new File(sdCard.getAbsolutePath(), "TestFolder");
-//                    newFolder.mkdir();
-//                    try {
-//                        // Create new File
-//                        File file = new File(newFolder, "DummyFile" + ".txt");
-//                        file.createNewFile();
-//
-//                        // Write to that file with fileWriter
-//                        FileWriter f;
-//                        f = new FileWriter(Environment.getExternalStorageDirectory()+ "/TestFolder/DummyFile" + ".txt");
-//                        f.write("Hello World");
-//                        f.flush();
-//                        f.close();
-//                    } catch (Exception ex){
-//                        System.out.println("Error:" + ex);
-//                    }
-//                } catch (Exception ex) {
-//                    System.out.println("Exception: "+ ex);
-//                }
             }
         });
     }
@@ -65,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
 
             File[] files = directory.listFiles();
-            System.out.println(files);
+//            System.out.println(files);
             if (files != null) {
                 for (File file : files) {
                     if (file != null) {
