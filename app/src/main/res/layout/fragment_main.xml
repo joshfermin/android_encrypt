@@ -12,7 +12,7 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Create Dummy File"
+        android:text="read sdcard"
         android:id="@+id/dummy_file_button"
         android:layout_below="@+id/textView"
         android:layout_alignParentLeft="true"
