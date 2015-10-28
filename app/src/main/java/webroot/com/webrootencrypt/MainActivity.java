@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                checkSDCardInfo();
+                checkSDCardInfo();
                 final String state = Environment.getExternalStorageState();
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
                     System.out.println("Getting files from sdcard...");
@@ -39,8 +39,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     private void getAllFilesOfDir(File directory) {
+        System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
+//        System.out.println("Directory Exists? " + directory.exists());
         if(directory.canRead()) {
-            System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
+//            System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
 
             File[] files = directory.listFiles();
 //            System.out.println(files);
@@ -55,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+        } else {
+            System.out.println("could not get read permissions of files");
         }
     }
 
@@ -76,6 +80,49 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
+
+//    static void encrypt() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+//        // Here you read the cleartext.
+//        FileInputStream fis = new FileInputStream("data/cleartext");
+//        // This stream write the encrypted text. This stream will be wrapped by another stream.
+//        FileOutputStream fos = new FileOutputStream("data/encrypted");
+//
+//        // Length is 16 byte
+//        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
+//        // Create cipher
+//        Cipher cipher = Cipher.getInstance("AES");
+//        cipher.init(Cipher.ENCRYPT_MODE, sks);
+//        // Wrap the output stream
+//        CipherOutputStream cos = new CipherOutputStream(fos, cipher);
+//        // Write bytes
+//        int b;
+//        byte[] d = new byte[8];
+//        while((b = fis.read(d)) != -1) {
+//            cos.write(d, 0, b);
+//        }
+//        // Flush and close streams.
+//        cos.flush();
+//        cos.close();
+//        fis.close();
+//    }
+//
+//    static void decrypt() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
+//        FileInputStream fis = new FileInputStream("data/encrypted");
+//
+//        FileOutputStream fos = new FileOutputStream("data/decrypted");
+//        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
+//        Cipher cipher = Cipher.getInstance("AES");
+//        cipher.init(Cipher.DECRYPT_MODE, sks);
+//        CipherInputStream cis = new CipherInputStream(fis, cipher);
+//        int b;
+//        byte[] d = new byte[8];
+//        while((b = cis.read(d)) != -1) {
+//            fos.write(d, 0, b);
+//        }
+//        fos.flush();
+//        fos.close();
+//        cis.close();
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
