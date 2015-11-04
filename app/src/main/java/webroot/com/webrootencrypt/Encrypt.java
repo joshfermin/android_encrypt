@@ -8,18 +8,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.NoSuchAlgorithmException;
-import java.security.Security;
+
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
@@ -27,12 +24,12 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
-public class MainActivity extends AppCompatActivity {
+public class Encrypt extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_encrypt);
 
         // casts view as button via (Button)
         Button button = (Button) findViewById(R.id.dummy_file_button);
@@ -101,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             // Here you read the cleartext.
             FileInputStream fis = new FileInputStream(pathToEncrypt.getText().toString());
             // This stream write the encrypted text. This stream will be wrapped by another stream.
-            FileOutputStream fos = new FileOutputStream("data/encrypted/sched.PNG");
+            FileOutputStream fos = new FileOutputStream(pathToEncrypt.getText().toString() + ".encrypted");
 
             EditText password  = (EditText)findViewById(R.id.textPassword);
 
@@ -135,23 +132,27 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-//    static void decrypt() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
-//        FileInputStream fis = new FileInputStream("data/encrypted");
-//
-//        FileOutputStream fos = new FileOutputStream("data/decrypted");
-//        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
-//        Cipher cipher = Cipher.getInstance("AES");
-//        cipher.init(Cipher.DECRYPT_MODE, sks);
-//        CipherInputStream cis = new CipherInputStream(fis, cipher);
-//        int b;
-//        byte[] d = new byte[8];
-//        while((b = cis.read(d)) != -1) {
-//            fos.write(d, 0, b);
-//        }
-//        fos.flush();
-//        fos.close();
-//        cis.close();
-//    }
+    static void decrypt()  {
+        try {
+            FileInputStream fis = new FileInputStream("");
+
+            FileOutputStream fos = new FileOutputStream("data/decrypted");
+            SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.DECRYPT_MODE, sks);
+            CipherInputStream cis = new CipherInputStream(fis, cipher);
+            int b;
+            byte[] d = new byte[8];
+            while((b = cis.read(d)) != -1) {
+                fos.write(d, 0, b);
+            }
+            fos.flush();
+            fos.close();
+            cis.close();
+        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -176,3 +177,4 @@ public class MainActivity extends AppCompatActivity {
     }
 
 }
+
