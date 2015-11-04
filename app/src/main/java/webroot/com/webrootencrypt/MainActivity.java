@@ -7,13 +7,25 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,8 +43,9 @@ public class MainActivity extends AppCompatActivity {
                 checkSDCardInfo();
                 final String state = Environment.getExternalStorageState();
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
-                    System.out.println("Getting files from sdcard...");
-                    getAllFilesOfDir(Environment.getExternalStorageDirectory());
+                    System.out.println("Encrypting...");
+                    encrypt();
+//                    getAllFilesOfDir(Environment.getExternalStorageDirectory());
                     System.out.println("Done...");
                 }
             }
@@ -81,31 +94,47 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    static void encrypt() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
-//        // Here you read the cleartext.
-//        FileInputStream fis = new FileInputStream("data/cleartext");
-//        // This stream write the encrypted text. This stream will be wrapped by another stream.
-//        FileOutputStream fos = new FileOutputStream("data/encrypted");
-//
-//        // Length is 16 byte
-//        SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
-//        // Create cipher
-//        Cipher cipher = Cipher.getInstance("AES");
-//        cipher.init(Cipher.ENCRYPT_MODE, sks);
-//        // Wrap the output stream
-//        CipherOutputStream cos = new CipherOutputStream(fos, cipher);
-//        // Write bytes
-//        int b;
-//        byte[] d = new byte[8];
-//        while((b = fis.read(d)) != -1) {
-//            cos.write(d, 0, b);
-//        }
-//        // Flush and close streams.
-//        cos.flush();
-//        cos.close();
-//        fis.close();
-//    }
-//
+    private void encrypt() {
+        try {
+            EditText pathToEncrypt = (EditText)findViewById(R.id.pathToEncrypt);
+
+            // Here you read the cleartext.
+            FileInputStream fis = new FileInputStream(pathToEncrypt.getText().toString());
+            // This stream write the encrypted text. This stream will be wrapped by another stream.
+            FileOutputStream fos = new FileOutputStream("data/encrypted/sched.PNG");
+
+            EditText password  = (EditText)findViewById(R.id.textPassword);
+
+            // Length is 16 byte
+            KeyGenerator generator = KeyGenerator.getInstance("AES");
+            generator.init(192);
+            Key encryptionKey = generator.generateKey();
+
+            // Create cipher
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, encryptionKey);
+
+            // Wrap the output stream
+            CipherOutputStream cos = new CipherOutputStream(fos, cipher);
+            // Write bytes
+            int b;
+            byte[] d = new byte[8];
+
+            while((b = fis.read(d)) != -1) {
+                cos.write(d, 0, b);
+            }
+
+            // Flush and close streams.
+            cos.flush();
+            cos.close();
+            fis.close();
+
+        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 //    static void decrypt() throws IOException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException {
 //        FileInputStream fis = new FileInputStream("data/encrypted");
 //
