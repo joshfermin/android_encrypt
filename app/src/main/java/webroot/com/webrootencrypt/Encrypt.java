@@ -14,17 +14,18 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.Key;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
-import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Encrypt extends AppCompatActivity {
+    public String salt = "saltysalt";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,34 +43,11 @@ public class Encrypt extends AppCompatActivity {
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
                     System.out.println("Encrypting...");
                     encrypt();
-//                    getAllFilesOfDir(Environment.getExternalStorageDirectory());
+//                    decrypt();
                     System.out.println("Done...");
                 }
             }
         });
-    }
-    private void getAllFilesOfDir(File directory) {
-        System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
-//        System.out.println("Directory Exists? " + directory.exists());
-        if(directory.canRead()) {
-//            System.out.println("Directory: " + directory.getAbsolutePath() + "\n");
-
-            File[] files = directory.listFiles();
-//            System.out.println(files);
-            if (files != null) {
-                for (File file : files) {
-                    if (file != null) {
-                        if (file.isDirectory()) {  // it is a folder...
-                            getAllFilesOfDir(file);
-                        } else {  // it is a file...
-                            System.out.println("File: " + file.getAbsolutePath() + "\n");
-                        }
-                    }
-                }
-            }
-        } else {
-            System.out.println("could not get read permissions of files");
-        }
     }
 
     private boolean checkSDCardInfo() {
@@ -101,15 +79,16 @@ public class Encrypt extends AppCompatActivity {
             FileOutputStream fos = new FileOutputStream(pathToEncrypt.getText().toString() + ".encrypted");
 
             EditText password  = (EditText)findViewById(R.id.textPassword);
+            byte[] key = (salt + password.getText().toString()).getBytes("UTF-8");
+            MessageDigest sha = MessageDigest.getInstance("SHA-1");
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 16); // use only first 128 bit
 
-            // Length is 16 byte
-            KeyGenerator generator = KeyGenerator.getInstance("AES");
-            generator.init(192);
-            Key encryptionKey = generator.generateKey();
+            SecretKeySpec sks = new SecretKeySpec(key, "AES");
 
             // Create cipher
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, encryptionKey);
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, sks);
 
             // Wrap the output stream
             CipherOutputStream cos = new CipherOutputStream(fos, cipher);
@@ -132,12 +111,18 @@ public class Encrypt extends AppCompatActivity {
 
     }
 
-    static void decrypt()  {
+    private void decrypt()  {
         try {
-            FileInputStream fis = new FileInputStream("");
+            FileInputStream fis = new FileInputStream("/storage/sdcard/sched.PNG.encrypted");
 
-            FileOutputStream fos = new FileOutputStream("data/decrypted");
-            SecretKeySpec sks = new SecretKeySpec("MyDifficultPassw".getBytes(), "AES");
+            FileOutputStream fos = new FileOutputStream("/storage/sdcard/sched.PNG");
+
+            byte[] key = (salt + "test").getBytes("UTF-8");
+            MessageDigest sha = MessageDigest.getInstance("SHA-1");
+            key = sha.digest(key);
+            key = Arrays.copyOf(key, 16); // use only first 128 bit
+
+            SecretKeySpec sks = new SecretKeySpec(key, "AES");
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, sks);
             CipherInputStream cis = new CipherInputStream(fis, cipher);
