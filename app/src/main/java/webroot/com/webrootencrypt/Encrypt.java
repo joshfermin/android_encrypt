@@ -25,13 +25,15 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Encrypt extends AppCompatActivity {
-    public String salt = "saltysalt";
+    public String salt = "saltysalt"; // should make this randomized per user.
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_encrypt);
 
+//        final Bundle extras = getIntent().getExtras();
+//        System.out.println(extras.getString("key"));
         // casts view as button via (Button)
         Button button = (Button) findViewById(R.id.dummy_file_button);
         // Callback when button is clicked:
@@ -39,6 +41,8 @@ public class Encrypt extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 checkSDCardInfo();
+//                System.out.println(extras.getString("position"));
+
                 final String state = Environment.getExternalStorageState();
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
                     System.out.println("Encrypting...");
