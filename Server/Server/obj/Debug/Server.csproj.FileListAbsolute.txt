@@ -1,0 +1,6 @@
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\bin\Debug\Server.exe.config
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\bin\Debug\Server.exe
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\bin\Debug\Server.pdb
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\obj\Debug\Server.exe
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\obj\Debug\Server.pdb
+C:\Users\jfermin\Documents\Visual Studio 2012\Projects\Server\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
