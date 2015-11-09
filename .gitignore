@@ -1,1 +1,4 @@
 *.suo
+
+/Server/Server/bin/debug
+/Server/Server/obj/debug
