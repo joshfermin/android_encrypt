@@ -10,6 +10,7 @@ namespace Server
 {
     class Program
     {
+        public static string data = null;
         static void Main(string[] args)
         {
             const int port = 8080;
@@ -27,26 +28,29 @@ namespace Server
                 Console.WriteLine("Local Endpoint: {0}", listener.LocalEndpoint);
                 Console.WriteLine("Waiting for connection....");
 
-                Socket s = listener.AcceptSocket();
-                Console.WriteLine("Connection accepted from " + s.RemoteEndPoint);
 
-                byte[] b = new byte[100];
-                int k = s.Receive(b);
-
-                char cc = ' ';
-                string test = null;
-                Console.WriteLine("Recieved...");
-                for (int i = 0; i < k - 1; i++)
+                while (true)
                 {
-                    Console.Write(Convert.ToChar(b[i]));
-                    cc = Convert.ToChar(b[i]);
-                    test += cc.ToString();
+                    Socket s = listener.AcceptSocket();
+                    Console.WriteLine("Connection accepted from " + s.RemoteEndPoint);
+
+                    byte[] b = new byte[1024];
+                    int k = s.Receive(b);
+
+                    char cc = ' ';
+                    string test = null;
+                    Console.WriteLine("Recieved...");
+                    for (int i = 0; i < k - 1; i++)
+                    {
+                        Console.Write(Convert.ToChar(b[i]));
+                        cc = Convert.ToChar(b[i]);
+                        test += cc.ToString();
+                    }
+
+                    ASCIIEncoding asen = new ASCIIEncoding();
+                    s.Send(asen.GetBytes("The string was recieved by the server."));
+                    s.Close();
                 }
-
-                ASCIIEncoding asen = new ASCIIEncoding();
-                s.Send(asen.GetBytes("The string was recieved by the server."));
-                s.Close();
-
 
                 Console.ReadLine();
 
