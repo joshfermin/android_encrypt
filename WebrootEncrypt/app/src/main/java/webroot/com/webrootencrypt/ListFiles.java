@@ -19,7 +19,6 @@ import java.util.List;
 
 public class ListFiles extends AppCompatActivity {
 
-    List<HashMap<String, String>> fillMaps = new ArrayList<HashMap<String, String>>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +54,9 @@ public class ListFiles extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
         Intent intent = new Intent(Intent.ACTION_SYNC, null, this, ClientService.class);
+        intent.putExtra("FILES_IN_SDCARD", FilesInFolder);
         startService(intent);
 
         Button button = (Button) findViewById(R.id.goToEncrypt);
