@@ -1,31 +1,18 @@
 package webroot.com.webrootencrypt;
 
 import android.content.Intent;
-import android.os.NetworkOnMainThreadException;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
-import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,16 +46,17 @@ public class ListFiles extends AppCompatActivity {
 //        });
 
 
-
         sdCard.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
                 // Clicking on items
-                new ClientAsyncTask().execute();
+//                new ClientService().execute();
                 Intent intent = new Intent(ListFiles.this, Encrypt.class);
 //                        .putExtra("position", fillMaps.get(position));
                 startActivity(intent);
             }
         });
+        Intent intent = new Intent(Intent.ACTION_SYNC, null, this, ClientService.class);
+        startService(intent);
 
         Button button = (Button) findViewById(R.id.goToEncrypt);
 
@@ -101,6 +89,11 @@ public class ListFiles extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    // Method to start the service
+    public void startService(View view) {
+        startService(new Intent(getBaseContext(), ClientService.class));
     }
 
     public ArrayList<String> GetFiles(String DirectoryPath) {

@@ -1,8 +1,13 @@
 package webroot.com.webrootencrypt;
 
+import android.app.IntentService;
+import android.app.Service;
+import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.os.NetworkOnMainThreadException;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -17,9 +22,37 @@ import java.net.UnknownHostException;
 /**
  * Created by jfermin on 11/9/2015.
  */
-public class ClientAsyncTask extends AsyncTask<String, Void, String> {
+public class ClientService extends IntentService {
 
-    protected String doInBackground(String... args) {
+    /**
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+     *
+     */
+    public ClientService() {
+        super(ClientService.class.getName());
+    }
+
+    @Override
+    public IBinder onBind(Intent arg0) {
+        return null;
+    }
+
+    @Override
+    public void onHandleIntent(Intent intent) {
+        // Let it continue running until it is stopped.
+//        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        sendToClient("Hello");
+//        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
+    }
+
+    protected String sendToClient(String... args) {
         try {
             InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
             Log.d("TCP", "C: Connecting...");
@@ -59,8 +92,6 @@ public class ClientAsyncTask extends AsyncTask<String, Void, String> {
         } catch (NetworkOnMainThreadException e){
             e.printStackTrace();
         }
-
         return("Success");
     }
-
 }
