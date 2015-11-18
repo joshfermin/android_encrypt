@@ -57,11 +57,6 @@ public class ClientService extends IntentService {
         return START_STICKY;
     }
 
-//    @Override
-//    public void onDestroy() {
-//        super.onDestroy();
-//        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
-//    }
     protected void listenToServer(Socket socket)
     {
         try {
@@ -87,10 +82,6 @@ public class ClientService extends IntentService {
                 socket.close();
                 Log.d("TCP", "C: Socket closed.");
             }
-
-//            } catch (UnknownHostException e) {
-//                Log.e("TCP", "C: UnknownHostException", e);
-//                e.printStackTrace();
         } catch (IOException e) {
             Log.e("TCP", "C: IOException", e);
             e.printStackTrace();

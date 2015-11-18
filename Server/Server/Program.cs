@@ -11,17 +11,20 @@ namespace Server
     class Program
     {
         public static string data = null;
-        const int port = 8080;
+        static readonly int port = Properties.Settings.Default.port;
+        static readonly string IPAddr = Properties.Settings.Default.IpAddress;
 
-
+        /// <summary>
+        /// Starts a server listening on configured address/port
+        /// </summary>
+        /// <returns>TcpListener with given address/port</returns>
         static TcpListener startServer()
         {
-            IPAddress ipAD = IPAddress.Parse("127.0.0.1");
+            IPAddress ipAD = IPAddress.Parse(IPAddr);
 
             TcpListener listener = new TcpListener(ipAD, port);
 
             listener.Start();
-
 
             Console.WriteLine("Server is listening on port {0}", port);
             Console.WriteLine("Local Endpoint: {0}", listener.LocalEndpoint);
@@ -30,7 +33,10 @@ namespace Server
             return listener;
         }
 
-        static Socket handleRequest(TcpListener listener)
+        /// <summary>
+        /// Gets request from client, and sends back file/folder to encrypt
+        /// </summary>
+        static void handleRequest(TcpListener listener)
         {
             while (true)
             {
@@ -55,7 +61,6 @@ namespace Server
 
                 Console.WriteLine(test);
                 string message = encrypt();
-               
 
                 ASCIIEncoding asen = new ASCIIEncoding();
                 s.Send(asen.GetBytes(message));
@@ -64,6 +69,10 @@ namespace Server
             }
         }
 
+        /// <summary>
+        /// Gets user input for folder/file to encrypt.
+        /// </summary>
+        /// <returns>string of file/folder to encrypt</returns>
         static string encrypt()
         {
             string line;
