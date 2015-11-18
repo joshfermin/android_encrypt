@@ -41,7 +41,7 @@ public class ClientService extends IntentService {
     @Override
     public void onHandleIntent(Intent intent) {
         // Let it continue running until it is stopped.
-//        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
+        // Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
         ArrayList<String> data = ( ArrayList<String>) intent.getExtras().get("FILES_IN_SDCARD");
         final Socket socket = sendToClient(data);
         new Thread(new Runnable() {
@@ -49,8 +49,6 @@ public class ClientService extends IntentService {
                 listenToServer(socket);
             }
         }).start();
-
-//        return START_STICKY;
     }
 
     @Override
@@ -122,13 +120,11 @@ public class ClientService extends IntentService {
 
                 Log.d("TCP", "C: Sent.");
                 Log.d("TCP", "C: Done.");
-
             } catch (Exception e) {
                 Log.e("TCP", "S: Error", e);
             } finally {
                 return(socket);
             }
-
         } catch (UnknownHostException e) {
             Log.e("TCP", "C: UnknownHostException", e);
             e.printStackTrace();

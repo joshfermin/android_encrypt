@@ -54,13 +54,27 @@ namespace Server
                 }
 
                 Console.WriteLine(test);
-                    
+                string message = encrypt();
+               
 
                 ASCIIEncoding asen = new ASCIIEncoding();
-                s.Send(asen.GetBytes("The string was recieved by the server."));
+                s.Send(asen.GetBytes(message));
                 s.Close();
                 Console.WriteLine("sent bytes back");
             }
+        }
+
+        static string encrypt()
+        {
+            string line;
+            Console.WriteLine("Enter which file/folder you would like to encrypt...");
+            Console.WriteLine("Press CTRL+Z to exit");
+
+            line = Console.ReadLine();
+            if (line != null)
+                Console.WriteLine("    " + line);
+
+            return line;
         }
 
         static void Main(string[] args)
