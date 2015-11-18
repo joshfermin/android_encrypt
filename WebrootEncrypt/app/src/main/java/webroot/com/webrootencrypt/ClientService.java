@@ -43,7 +43,13 @@ public class ClientService extends IntentService {
         // Let it continue running until it is stopped.
 //        Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
         ArrayList<String> data = ( ArrayList<String>) intent.getExtras().get("FILES_IN_SDCARD");
-        sendToClient(data);
+        final Socket socket = sendToClient(data);
+        new Thread(new Runnable() {
+            public void run() {
+                listenToServer(socket);
+            }
+        }).start();
+
 //        return START_STICKY;
     }
 
@@ -58,8 +64,44 @@ public class ClientService extends IntentService {
 //        super.onDestroy();
 //        Toast.makeText(this, "Service Destroyed", Toast.LENGTH_LONG).show();
 //    }
+    protected void listenToServer(Socket socket)
+    {
+        try {
+            BufferedReader in = null;
 
-    protected String sendToClient(ArrayList<String> toSend) {
+            try {
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+
+                String text = "";
+                String finalText = "";
+                while ((text = in.readLine()) != null) {
+                    finalText += text;
+                }
+                System.out.println(finalText);
+
+                Log.d("TCP", "C: Recieved.");
+                Log.d("TCP", "C: Done.");
+
+            } catch (Exception e) {
+                Log.e("TCP", "S: Error", e);
+            } finally {
+                socket.close();
+                Log.d("TCP", "C: Socket closed.");
+            }
+
+//            } catch (UnknownHostException e) {
+//                Log.e("TCP", "C: UnknownHostException", e);
+//                e.printStackTrace();
+        } catch (IOException e) {
+            Log.e("TCP", "C: IOException", e);
+            e.printStackTrace();
+        } catch (NetworkOnMainThreadException e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected Socket sendToClient(ArrayList<String> toSend) {
         try {
             InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
             Log.d("TCP", "C: Connecting...");
@@ -75,16 +117,8 @@ public class ClientService extends IntentService {
             try {
                 Log.d("TCP", "C: Sending: '" + message + "'");
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
                 out.println(message);
-
-                String text = "";
-                String finalText = "";
-                while ((text = in.readLine()) != null) {
-                    finalText += text;
-                }
-                System.out.println(finalText);
 
                 Log.d("TCP", "C: Sent.");
                 Log.d("TCP", "C: Done.");
@@ -92,7 +126,7 @@ public class ClientService extends IntentService {
             } catch (Exception e) {
                 Log.e("TCP", "S: Error", e);
             } finally {
-                socket.close();
+                return(socket);
             }
 
         } catch (UnknownHostException e) {
@@ -104,6 +138,6 @@ public class ClientService extends IntentService {
         } catch (NetworkOnMainThreadException e){
             e.printStackTrace();
         }
-        return("Success");
+        return(null);
     }
 }

@@ -11,52 +11,66 @@ namespace Server
     class Program
     {
         public static string data = null;
-        static void Main(string[] args)
+        const int port = 8080;
+
+
+        static TcpListener startServer()
         {
-            const int port = 8080;
+            IPAddress ipAD = IPAddress.Parse("127.0.0.1");
 
-            try
+            TcpListener listener = new TcpListener(ipAD, port);
+
+            listener.Start();
+
+
+            Console.WriteLine("Server is listening on port {0}", port);
+            Console.WriteLine("Local Endpoint: {0}", listener.LocalEndpoint);
+            Console.WriteLine("Waiting for connection....");
+
+            return listener;
+        }
+
+        static Socket handleRequest(TcpListener listener)
+        {
+            while (true)
             {
-                IPAddress ipAD = IPAddress.Parse("127.0.0.1");
+                int bytesRead;
+                byte[] buffer = new byte[1024];
+                string test = null;
 
-                TcpListener listener = new TcpListener(ipAD, port);
+                Socket s = listener.AcceptSocket();
+                Console.WriteLine("Connection accepted from " + s.RemoteEndPoint);
 
-                listener.Start();
+                bytesRead = s.Receive(buffer);
 
-
-                Console.WriteLine("Server is listening on port {0}", port);
-                Console.WriteLine("Local Endpoint: {0}", listener.LocalEndpoint);
-                Console.WriteLine("Waiting for connection....");
-
-
-                while (true)
+                char cc = ' ';
+                  
+                Console.WriteLine("Recieved...");
+                for (int i = 0; i < bytesRead - 1; i++)
                 {
-                    Socket s = listener.AcceptSocket();
-                    Console.WriteLine("Connection accepted from " + s.RemoteEndPoint);
-
-                    byte[] b = new byte[1024];
-                    int k = s.Receive(b);
-
-                    char cc = ' ';
-                    string test = null;
-                    Console.WriteLine("Recieved...");
-                    for (int i = 0; i < k - 1; i++)
-                    {
-                        Console.Write(Convert.ToChar(b[i]));
-                        cc = Convert.ToChar(b[i]);
-                        test += cc.ToString();
-                    }
-
-                    ASCIIEncoding asen = new ASCIIEncoding();
-                    s.Send(asen.GetBytes("The string was recieved by the server."));
-                    s.Close();
+                    //Console.Write(Convert.ToChar(buffer[i]));
+                    cc = Convert.ToChar(buffer[i]);
+                    test += cc.ToString();
                 }
 
-                Console.ReadLine();
+                Console.WriteLine(test);
+                    
 
-                //goto m;
-                //s.Close();
-                //myList.Stop();
+                ASCIIEncoding asen = new ASCIIEncoding();
+                s.Send(asen.GetBytes("The string was recieved by the server."));
+                s.Close();
+                Console.WriteLine("sent bytes back");
+            }
+        }
+
+        static void Main(string[] args)
+        {            
+            try
+            {
+                TcpListener listener = startServer();
+                handleRequest(listener);
+
+                Console.ReadLine();
             } catch (Exception e) {
                 Console.WriteLine("Exception " + e.StackTrace);
             }
