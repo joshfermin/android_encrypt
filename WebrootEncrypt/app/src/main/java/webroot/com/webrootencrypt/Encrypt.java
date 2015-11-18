@@ -25,7 +25,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 public class Encrypt extends AppCompatActivity {
-    public String salt = "saltysalt"; // should make this randomized per user.
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +46,10 @@ public class Encrypt extends AppCompatActivity {
                 final String state = Environment.getExternalStorageState();
                 if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
                     System.out.println("Encrypting...");
-                    encrypt();
+                    String pathToEncrypt = findViewById(R.id.pathToEncrypt).toString();
+                    String password  = findViewById(R.id.textPassword).toString();
+
+                    encrypt(pathToEncrypt, password);
 //                    decrypt();
                     System.out.println("Done...");
                 }
@@ -73,17 +76,16 @@ public class Encrypt extends AppCompatActivity {
         }
     }
 
-    private void encrypt() {
+    public static void encrypt(String pathToEncrypt, String password) {
         try {
-            EditText pathToEncrypt = (EditText)findViewById(R.id.pathToEncrypt);
+            String salt = "saltysalt"; // should make this randomized per user.
 
             // Here you read the cleartext.
-            FileInputStream fis = new FileInputStream(pathToEncrypt.getText().toString());
+            FileInputStream fis = new FileInputStream(pathToEncrypt.toString());
             // This stream write the encrypted text. This stream will be wrapped by another stream.
-            FileOutputStream fos = new FileOutputStream(pathToEncrypt.getText().toString() + ".encrypted");
+            FileOutputStream fos = new FileOutputStream(pathToEncrypt.toString() + ".encrypted");
 
-            EditText password  = (EditText)findViewById(R.id.textPassword);
-            byte[] key = (salt + password.getText().toString()).getBytes("UTF-8");
+            byte[] key = (salt + password.toString()).getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-1");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 16); // use only first 128 bit
@@ -116,9 +118,9 @@ public class Encrypt extends AppCompatActivity {
     }
 
     private void decrypt()  {
+        String salt = "saltysalt"; // should make this randomized per user.
         try {
             FileInputStream fis = new FileInputStream("/storage/sdcard/sched.PNG.encrypted");
-
             FileOutputStream fos = new FileOutputStream("/storage/sdcard/sched.PNG");
 
             byte[] key = (salt + "test").getBytes("UTF-8");

