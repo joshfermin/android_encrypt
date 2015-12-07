@@ -4,33 +4,33 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import webroot.com.webrootencrypt.ClientService;
 
 public class ListFiles extends AppCompatActivity {
-
+    ArrayAdapter<String> adapter;
+    ListView sdCard;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list_files);
 
-        final ListView sdCard;
+
         ArrayList<String> FilesInFolder = GetFiles(Environment.getExternalStorageDirectory().toString());
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, FilesInFolder);
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, FilesInFolder);
 
-        sdCard = (ListView) findViewById(R.id.listView);
+        sdCard = (ListView)findViewById(R.id.listView);
 //        sdCard.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, FilesInFolder));
         sdCard.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         sdCard.setAdapter(adapter);
@@ -55,6 +55,19 @@ public class ListFiles extends AppCompatActivity {
             public void onClick(View v) {
 //                Intent intent = new Intent(ListFiles.this, Encrypt.class);
 //                startActivity(intent);
+                SparseBooleanArray checked = sdCard.getCheckedItemPositions();
+                final ArrayList<String> selectedItems = new ArrayList<String>();
+
+                for (int i = 0; i < checked.size(); i++) {
+                    int position = checked.keyAt(i);
+                    if (checked.valueAt(i))
+                        selectedItems.add(adapter.getItem(position));
+                }
+                new Thread(new Runnable() {
+                    public void run() {
+                        ClientService.sendToClient(selectedItems);
+                    }
+                }).start();
             }
         });
     }
@@ -79,11 +92,6 @@ public class ListFiles extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    // Method to start the service
-    public void startService(View view) {
-        startService(new Intent(getBaseContext(), ClientService.class));
     }
 
     public ArrayList<String> GetFiles(String DirectoryPath) {
