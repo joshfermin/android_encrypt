@@ -27,33 +27,22 @@ public class ListFiles extends AppCompatActivity {
 
         final ListView sdCard;
         ArrayList<String> FilesInFolder = GetFiles(Environment.getExternalStorageDirectory().toString());
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, FilesInFolder);
+
         sdCard = (ListView) findViewById(R.id.listView);
-        sdCard.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, FilesInFolder));
-//        sdCard.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+//        sdCard.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, FilesInFolder));
+        sdCard.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        sdCard.setAdapter(adapter);
 
-
-//        sdCard.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
-//            @Override public boolean onPrepareActionMode(    android.view.ActionMode mode,    Menu menu){
-////                mode.getMenuInflater().inflate(R.menu.bookmarks,menu);
-//                return true;
-//            }
-//            @Override public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item){
-////                BookmarkListActionHandler.handleItemSelection(item, sdCard);
-//                mode.finish();
-//                return true;
+//        sdCard.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
+//                // Clicking on items
+//                Intent intent = new Intent(ListFiles.this, Encrypt.class);
+////                        .putExtra("position", fillMaps.get(position));
+//                startActivity(intent);
 //            }
 //        });
-
-
-        sdCard.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                // Clicking on items
-//                new ClientService().execute();
-                Intent intent = new Intent(ListFiles.this, Encrypt.class);
-//                        .putExtra("position", fillMaps.get(position));
-                startActivity(intent);
-            }
-        });
 
         Intent intent = new Intent(Intent.ACTION_SYNC, null, this, ClientService.class);
         intent.putExtra("FILES_IN_SDCARD", FilesInFolder);
