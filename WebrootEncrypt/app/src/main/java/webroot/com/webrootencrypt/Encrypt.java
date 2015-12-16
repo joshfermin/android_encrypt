@@ -1,5 +1,7 @@
 package webroot.com.webrootencrypt;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -8,14 +10,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -24,34 +29,57 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
-public class Encrypt extends AppCompatActivity {
 
+
+public class Encrypt extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_encrypt);
 
-//        final Bundle extras = getIntent().getExtras();
-//        System.out.println(extras.getString("key"));
         // casts view as button via (Button)
         Button button = (Button) findViewById(R.id.dummy_file_button);
         // Callback when button is clicked:
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkSDCardInfo();
-//                System.out.println(extras.getString("position"));
 
-                final String state = Environment.getExternalStorageState();
-                if ( Environment.MEDIA_MOUNTED.equals(state) || Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) ) {  // we can read the External Storage...
-                    System.out.println("Encrypting...");
-                    String pathToEncrypt = findViewById(R.id.pathToEncrypt).toString();
-                    String password  = findViewById(R.id.textPassword).toString();
+                TextView passwordTextView = (TextView)findViewById(R.id.textPassword);
+                final String password = passwordTextView.getText().toString();
+                if (password.matches("")) {
+                    Context context = getApplicationContext();
+                    CharSequence text = "Please add a password.";
+                    int duration = Toast.LENGTH_SHORT;
+                    Toast toast = Toast.makeText(context, text, duration);
+                    toast.show();
+                } else {
+                    Bundle extras = getIntent().getExtras();
+                    if (extras != null) {
+                        final ArrayList<String> selectedItems = extras.getStringArrayList("filesToEncrypt");
 
-                    encrypt(pathToEncrypt, password);
-//                    decrypt();
-                    System.out.println("Done...");
+                        new Thread(new Runnable() {
+                            public void run() {
+                                Socket socket = ClientService.sendToClient(selectedItems);
+                                ClientService.listenToServer(socket);
+
+
+
+                                for (int i = 0; i < selectedItems.size(); i++) {
+                                    encrypt(selectedItems.get(i), password);
+                                }
+                            }
+                        }).start();
+
+                        Context context = getApplicationContext();
+                        CharSequence text = "Files successfully sent to server.";
+                        int duration = Toast.LENGTH_SHORT;
+                        Toast toast = Toast.makeText(context, text, duration);
+                        toast.show();
+
+                        Intent intent = new Intent(Encrypt.this, ListFiles.class);
+                        startActivity(intent);
+                    }
                 }
             }
         });
@@ -79,13 +107,24 @@ public class Encrypt extends AppCompatActivity {
     public static void encrypt(String pathToEncrypt, String password) {
         try {
             String salt = "saltysalt"; // should make this randomized per user.
+            pathToEncrypt = Environment.getExternalStorageDirectory().toString() + "/" + pathToEncrypt;
+
+            String destZipFile = pathToEncrypt + ".zip";
+            Compress.zipFolder(pathToEncrypt, destZipFile);
+            System.out.println("***********************************************************************************pathtoencrypt:" +  pathToEncrypt);
+
 
             // Here you read the cleartext.
-            FileInputStream fis = new FileInputStream(pathToEncrypt.toString());
+            FileInputStream fis = new FileInputStream(destZipFile);
             // This stream write the encrypted text. This stream will be wrapped by another stream.
-            FileOutputStream fos = new FileOutputStream(pathToEncrypt.toString() + ".encrypted");
+            FileOutputStream fos = new FileOutputStream(destZipFile + ".encrypted");
 
-            byte[] key = (salt + password.toString()).getBytes("UTF-8");
+//            // Here you read the cleartext.
+//            FileInputStream fis = new FileInputStream(pathToEncrypt.toString());
+//            // This stream write the encrypted text. This stream will be wrapped by another stream.
+//            FileOutputStream fos = new FileOutputStream(pathToEncrypt.toString() + ".encrypted");
+
+            byte[] key = (salt + password).getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-1");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 16); // use only first 128 bit
@@ -98,6 +137,7 @@ public class Encrypt extends AppCompatActivity {
 
             // Wrap the output stream
             CipherOutputStream cos = new CipherOutputStream(fos, cipher);
+
             // Write bytes
             int b;
             byte[] d = new byte[8];
@@ -110,14 +150,12 @@ public class Encrypt extends AppCompatActivity {
             cos.flush();
             cos.close();
             fis.close();
-
-        } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-    private void decrypt()  {
+    public void decrypt()  {
         String salt = "saltysalt"; // should make this randomized per user.
         try {
             FileInputStream fis = new FileInputStream("/storage/sdcard/sched.PNG.encrypted");
