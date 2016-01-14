@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import java.io.File;
+import java.net.Socket;
 import java.util.ArrayList;
 import webroot.com.webrootencrypt.ClientService;
 
@@ -27,22 +28,12 @@ public class ListFiles extends AppCompatActivity {
 
 
         ArrayList<String> FilesInFolder = GetFiles(Environment.getExternalStorageDirectory().toString());
-
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, FilesInFolder);
 
         sdCard = (ListView)findViewById(R.id.listView);
-//        sdCard.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, FilesInFolder));
         sdCard.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         sdCard.setAdapter(adapter);
 
-//        sdCard.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-//                // Clicking on items
-//                Intent intent = new Intent(ListFiles.this, Encrypt.class);
-////                        .putExtra("position", fillMaps.get(position));
-//                startActivity(intent);
-//            }
-//        });
 
         Intent intent = new Intent(Intent.ACTION_SYNC, null, this, ClientService.class);
         intent.putExtra("FILES_IN_SDCARD", FilesInFolder);
@@ -53,8 +44,6 @@ public class ListFiles extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent intent = new Intent(ListFiles.this, Encrypt.class);
-//                startActivity(intent);
                 SparseBooleanArray checked = sdCard.getCheckedItemPositions();
                 final ArrayList<String> selectedItems = new ArrayList<String>();
 
@@ -63,11 +52,19 @@ public class ListFiles extends AppCompatActivity {
                     if (checked.valueAt(i))
                         selectedItems.add(adapter.getItem(position));
                 }
-                new Thread(new Runnable() {
-                    public void run() {
-                        ClientService.sendToClient(selectedItems);
-                    }
-                }).start();
+
+                Intent intent = new Intent(ListFiles.this, Encrypt.class);
+                intent.putExtra("filesToEncrypt", selectedItems);
+                startActivity(intent);
+
+
+//
+//                new Thread(new Runnable() {
+//                    public void run() {
+//                        Socket socket = ClientService.sendToClient(selectedItems);
+//                        ClientService.listenToServer(socket);
+//                    }
+//                }).start();
             }
         });
     }

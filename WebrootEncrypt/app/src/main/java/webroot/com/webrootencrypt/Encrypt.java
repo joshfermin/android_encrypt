@@ -31,7 +31,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 
 
-public class Encrypt extends AppCompatActivity {
+public class Encrypt extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,37 +39,52 @@ public class Encrypt extends AppCompatActivity {
         setContentView(R.layout.activity_encrypt);
 
         // casts view as button via (Button)
-        Button button = (Button) findViewById(R.id.dummy_file_button);
-        // Callback when button is clicked:
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        Button encryptButton = (Button) findViewById(R.id.dummy_file_button);
+        Button decryptButton = (Button) findViewById(R.id.decrypt);
 
-                TextView passwordTextView = (TextView)findViewById(R.id.textPassword);
-                final String password = passwordTextView.getText().toString();
+        // Callback when button is clicked:
+        decryptButton.setOnClickListener(this);
+        encryptButton.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v){
+        final Bundle extras = getIntent().getExtras();
+        final ArrayList<String> selectedItems = extras.getStringArrayList("filesToEncrypt");
+
+        TextView passwordTextView = (TextView) findViewById(R.id.textPassword);
+        final String password = passwordTextView.getText().toString();
+
+        switch(v.getId()){
+            case R.id.decrypt:
                 if (password.matches("")) {
-                    Context context = getApplicationContext();
-                    CharSequence text = "Please add a password.";
-                    int duration = Toast.LENGTH_SHORT;
-                    Toast toast = Toast.makeText(context, text, duration);
-                    toast.show();
+                    emptyPassNotif();
                 } else {
-                    Bundle extras = getIntent().getExtras();
+                    for (int i = 0; i < selectedItems.size(); i++) {
+                        decrypt(selectedItems.get(i), password);
+                    }
+
+
+                    Intent intent = new Intent(Encrypt.this, ListFiles.class);
+                    startActivity(intent);
+                }
+                break;
+            case R.id.dummy_file_button:
+                if (password.matches("")) {
+                    emptyPassNotif();
+                } else {
                     if (extras != null) {
-                        final ArrayList<String> selectedItems = extras.getStringArrayList("filesToEncrypt");
 
                         new Thread(new Runnable() {
                             public void run() {
                                 Socket socket = ClientService.sendToClient(selectedItems);
                                 ClientService.listenToServer(socket);
-
-
-
-                                for (int i = 0; i < selectedItems.size(); i++) {
-                                    encrypt(selectedItems.get(i), password);
-                                }
                             }
                         }).start();
+
+                        for (int i = 0; i < selectedItems.size(); i++) {
+                            encrypt(selectedItems.get(i), password);
+                        }
 
                         Context context = getApplicationContext();
                         CharSequence text = "Files successfully sent to server.";
@@ -81,8 +96,17 @@ public class Encrypt extends AppCompatActivity {
                         startActivity(intent);
                     }
                 }
-            }
-        });
+                break;
+        }
+    }
+
+    private void emptyPassNotif() {
+        Context context = getApplicationContext();
+        CharSequence text = "Please add a password.";
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 
     private boolean checkSDCardInfo() {
@@ -111,18 +135,15 @@ public class Encrypt extends AppCompatActivity {
 
             String destZipFile = pathToEncrypt + ".zip";
             Compress.zipFolder(pathToEncrypt, destZipFile);
-            System.out.println("***********************************************************************************pathtoencrypt:" +  pathToEncrypt);
-
 
             // Here you read the cleartext.
             FileInputStream fis = new FileInputStream(destZipFile);
-            // This stream write the encrypted text. This stream will be wrapped by another stream.
-            FileOutputStream fos = new FileOutputStream(destZipFile + ".encrypted");
 
-//            // Here you read the cleartext.
-//            FileInputStream fis = new FileInputStream(pathToEncrypt.toString());
-//            // This stream write the encrypted text. This stream will be wrapped by another stream.
-//            FileOutputStream fos = new FileOutputStream(pathToEncrypt.toString() + ".encrypted");
+            // This stream write the encrypted text. This stream will be wrapped by another stream.
+            if (destZipFile.endsWith(".zip")) {
+                destZipFile = destZipFile.substring(0, destZipFile.length() - 4);
+            }
+            FileOutputStream fos = new FileOutputStream(destZipFile + ".encrypted");
 
             byte[] key = (salt + password).getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-1");
@@ -155,13 +176,26 @@ public class Encrypt extends AppCompatActivity {
         }
     }
 
-    public void decrypt()  {
+    public void decrypt(String pathToEncrypt, String password)  {
         String salt = "saltysalt"; // should make this randomized per user.
         try {
-            FileInputStream fis = new FileInputStream("/storage/sdcard/sched.PNG.encrypted");
-            FileOutputStream fos = new FileOutputStream("/storage/sdcard/sched.PNG");
+            pathToEncrypt = Environment.getExternalStorageDirectory().toString() + "/" + pathToEncrypt;
+            FileInputStream fis = new FileInputStream(pathToEncrypt);
+            if (pathToEncrypt.endsWith(".encrypted")) {
+                pathToEncrypt = pathToEncrypt.substring(0, pathToEncrypt.length() - 10);
+            } else {
+                Context context = getApplicationContext();
+                CharSequence text = "File is not encrypted. Please choose another.";
+                int duration = Toast.LENGTH_SHORT;
+                Toast toast = Toast.makeText(context, text, duration);
+                toast.show();
 
-            byte[] key = (salt + "test").getBytes("UTF-8");
+                return;
+            }
+            pathToEncrypt = pathToEncrypt + ".zip";
+            FileOutputStream fos = new FileOutputStream(pathToEncrypt);
+
+            byte[] key = (salt + password).getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-1");
             key = sha.digest(key);
             key = Arrays.copyOf(key, 16); // use only first 128 bit
@@ -175,9 +209,19 @@ public class Encrypt extends AppCompatActivity {
             while((b = cis.read(d)) != -1) {
                 fos.write(d, 0, b);
             }
+
+            Compress.unzipFolder(pathToEncrypt);
+
+            Context context = getApplicationContext();
+            CharSequence text = "Files successfully decrypted.";
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+
             fos.flush();
             fos.close();
             cis.close();
+
         } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
             e.printStackTrace();
         }
@@ -197,7 +241,7 @@ public class Encrypt extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
+        // noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }

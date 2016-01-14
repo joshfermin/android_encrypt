@@ -60,7 +60,7 @@ namespace Server
                 }
 
                 Console.WriteLine(test);
-                string message = encrypt();
+                string message = "files encrypted.";
 
                 ASCIIEncoding asen = new ASCIIEncoding();
                 s.Send(asen.GetBytes(message));
