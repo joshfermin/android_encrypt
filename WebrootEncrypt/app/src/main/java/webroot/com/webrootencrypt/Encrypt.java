@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -167,6 +168,11 @@ public class Encrypt extends AppCompatActivity implements View.OnClickListener{
                 cos.write(d, 0, b);
             }
 
+            File directory = new File(pathToEncrypt);
+            deleteDirectory(directory);
+            File zip = new File(destZipFile + ".zip");
+            zip.delete();
+
             // Flush and close streams.
             cos.flush();
             cos.close();
@@ -192,8 +198,7 @@ public class Encrypt extends AppCompatActivity implements View.OnClickListener{
 
                 return;
             }
-            pathToEncrypt = pathToEncrypt + ".zip";
-            FileOutputStream fos = new FileOutputStream(pathToEncrypt);
+            FileOutputStream fos = new FileOutputStream(pathToEncrypt  + ".zip");
 
             byte[] key = (salt + password).getBytes("UTF-8");
             MessageDigest sha = MessageDigest.getInstance("SHA-1");
@@ -210,13 +215,20 @@ public class Encrypt extends AppCompatActivity implements View.OnClickListener{
                 fos.write(d, 0, b);
             }
 
-            Compress.unzipFolder(pathToEncrypt);
+            Compress.unzipFolder(pathToEncrypt  + ".zip");
 
             Context context = getApplicationContext();
             CharSequence text = "Files successfully decrypted.";
             int duration = Toast.LENGTH_SHORT;
             Toast toast = Toast.makeText(context, text, duration);
             toast.show();
+
+
+            File encrypted = new File(pathToEncrypt + ".encrypted");
+            encrypted.delete();
+            File zip = new File(pathToEncrypt + ".zip");
+            zip.delete();
+
 
             fos.flush();
             fos.close();
@@ -225,6 +237,25 @@ public class Encrypt extends AppCompatActivity implements View.OnClickListener{
         } catch (IOException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException e) {
             e.printStackTrace();
         }
+    }
+
+
+    private static boolean deleteDirectory(File path) {
+        if( path.exists() ) {
+            File[] files = path.listFiles();
+            if (files == null) {
+                return true;
+            }
+            for(int i=0; i<files.length; i++) {
+                if(files[i].isDirectory()) {
+                    deleteDirectory(files[i]);
+                }
+                else {
+                    files[i].delete();
+                }
+            }
+        }
+        return( path.delete() );
     }
 
     @Override
@@ -248,6 +279,5 @@ public class Encrypt extends AppCompatActivity implements View.OnClickListener{
 
         return super.onOptionsItemSelected(item);
     }
-
 }
 
